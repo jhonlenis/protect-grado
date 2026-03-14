@@ -103,7 +103,7 @@ const NosotrosPage = () => {
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 leading-tight">{miembro.nombre}</h3>
                 <p className="text-sm font-semibold text-green-700 mb-3 uppercase tracking-wider">{miembro.rol}</p>
-                <p className="text-sm text-gray-500 italic">"{miembro.descripcion}"</p>
+                <p className="text-sm text-gray-500 italic">&quot;{miembro.descripcion}&quot;</p>
               </div>
             ))}
           </div>
