@@ -1,0 +1,32 @@
+[
+  {
+    "id": 30292,
+    "programa": "Análisis y Desarrollo de Software",
+    "fecha": "2026-03-14T05:49:24.123Z",
+    "usuario": "Aprendiz Sena"
+  },
+  {
+    "id": 68215,
+    "programa": "Análisis y Desarrollo de Software",
+    "fecha": "2026-03-14T05:50:47.009Z",
+    "usuario": "Aprendiz Sena"
+  },
+  {
+    "id": 17307,
+    "programa": "Gestión de Redes de Datos",
+    "fecha": "2026-03-14T05:57:46.094Z",
+    "usuario": "Aprendiz Sena"
+  },
+  {
+    "id": 52214,
+    "programa": "Programación de Aplicaciones para Dispositivos Móviles",
+    "fecha": "2026-03-14T06:01:15.172Z",
+    "usuario": "Aprendiz Sena"
+  },
+  {
+    "id": 41752,
+    "programa": "Ciberseguridad",
+    "fecha": "2026-03-14T06:02:17.404Z",
+    "usuario": "Aprendiz Sena"
+  }
+]
