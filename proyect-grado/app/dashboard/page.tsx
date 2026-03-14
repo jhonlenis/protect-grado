@@ -1,13 +1,84 @@
+// cspell:disable
 "use client";
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+
+interface Inscripcion {
+  id: number;
+  programa: string;
+  fecha: string;
+  usuario: string;
+}
 
 export default function DashboardPage() {
   const [busqueda, setBusqueda] = useState('');
   const [sectorActivo, setSectorActivo] = useState('Todos');
   const [programaSeleccionado, setProgramaSeleccionado] = useState<string | null>(null);
   const [inscritoExitoso, setInscritoExitoso] = useState(false);
+  const [misInscripciones, setMisInscripciones] = useState<Inscripcion[]>([]);
+  
+  // Rol del usuario para control de permisos
+  const [rolUsuario] = useState('aprendiz'); 
+
+  // Función para cargar los datos de la API (usando useCallback para estabilidad)
+  const fetchEnrollments = useCallback(async () => {
+    try {
+      const res = await fetch('/api/inscripciones');
+      if (res.ok) {
+        const data = await res.json();
+        setMisInscripciones(data);
+      }
+    } catch (error) {
+      console.error("Error cargando base de datos", error);
+    }
+  }, []);
+
+  // useEffect Corregido: Evita el renderizado en cascada
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadData = async () => {
+      if (isMounted) {
+        await fetchEnrollments();
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchEnrollments]);
+
+  const manejarInscripcion = async () => {
+    if (!programaSeleccionado) return;
+    try {
+      const response = await fetch('/api/inscripciones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ programa: programaSeleccionado }),
+      });
+
+      const resultado = await response.json();
+
+      if (response.ok) {
+        setInscritoExitoso(true);
+        // Recargamos los datos después de inscribirse
+        await fetchEnrollments(); 
+        
+        setTimeout(() => {
+          setInscritoExitoso(false);
+          setProgramaSeleccionado(null);
+        }, 2000);
+      } else {
+        alert(resultado.error || "Error al inscribirse");
+        setProgramaSeleccionado(null);
+      }
+    } catch (error) {
+      alert("Error de conexión");
+    }
+  };
 
   const categorias = [
     { id: "01", nombre: "Tecnología", label: "Tecnología y Digital", cursos: ["Análisis y Desarrollo de Software", "Programación de Aplicaciones para Dispositivos Móviles", "Gestión de Redes de Datos", "Ciberseguridad", "Desarrollo de Videojuegos", "Animación Digital", "Programación de Software", "Mantenimiento de Cómputo", "Desarrollo PHP", "Python", "HTML5 y CSS3", "Bases de Datos MySQL", "Java"] },
@@ -21,26 +92,17 @@ export default function DashboardPage() {
 
   const nombresSectores = ["Todos", ...categorias.map(c => c.nombre)];
 
-  const manejarInscripcion = () => {
-    setInscritoExitoso(true);
-    setTimeout(() => {
-      setInscritoExitoso(false);
-      setProgramaSeleccionado(null);
-    }, 3000);
-  };
-
   return (
     <div className="light relative min-h-screen w-full overflow-x-hidden bg-white">
       <div className="fixed inset-0 -z-10 w-full h-full" style={{ background: 'linear-gradient(to bottom, #f0fdf4, #ffffff)' }} />
 
-      {/* NAVBAR */}
       <nav className="w-full bg-white/95 border-b border-green-100 px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-4">
           <Image src="/Sena Logo.png" alt="Sena Logo" width={45} height={45} />
           <h1 className="text-xl font-black text-black uppercase italic tracking-tighter">SENA <span className="text-green-600">UN CLIC</span></h1>
         </div>
         <div className="hidden md:flex bg-gray-50 border border-green-200 rounded-full px-5 py-2 items-center gap-3">
-          <span className="text-black font-bold">🔍</span>
+          <span className="text-black font-bold text-sm">🔍</span>
           <input type="text" placeholder="Buscar programa..." className="bg-transparent outline-none text-sm font-bold w-64 text-black" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
         </div>
         <Link href="/" className="text-[10px] font-black text-red-600 uppercase border-2 border-red-600 px-4 py-2 rounded-xl">Cerrar Sesión</Link>
@@ -57,8 +119,41 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* CONTENIDO */}
       <div className="max-w-7xl mx-auto p-6 md:p-12 space-y-20">
+        {/* SECCIÓN DE INSCRIPCIONES */}
+        {misInscripciones.length > 0 && (
+          <section className="pt-5">
+            <h2 className="text-4xl font-black text-black tracking-tighter uppercase italic mb-8">
+              Mis <span className="text-green-600">Inscripciones Activas</span>
+            </h2>
+            <div className="bg-white border-2 border-black rounded-[2rem] overflow-hidden shadow-xl">
+              <table className="w-full text-left">
+                <thead className="bg-black text-white">
+                  <tr>
+                    <th className="p-6 uppercase text-[10px] font-black tracking-widest">ID Registro</th>
+                    <th className="p-6 uppercase text-[10px] font-black tracking-widest">Programa</th>
+                    <th className="p-6 uppercase text-[10px] font-black tracking-widest text-center">Estado</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-black">
+                  {misInscripciones.map((ins) => (
+                    <tr key={ins.id} className="hover:bg-green-50 transition-colors">
+                      <td className="p-6 font-mono text-xs text-gray-500">#{ins.id}</td>
+                      <td className="p-6 font-black uppercase text-sm italic">{ins.programa}</td>
+                      <td className="p-6 text-center">
+                        <span className="bg-green-100 text-green-700 px-4 py-1 rounded-full text-[10px] font-black uppercase">
+                          Registrado
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* LISTADO DE PROGRAMAS */}
         {categorias.map((cat) => {
           const coincidencias = cat.cursos.filter(c => c.toLowerCase().includes(busqueda.toLowerCase()));
           const mostrar = (sectorActivo === "Todos" || sectorActivo === cat.nombre) && coincidencias.length > 0;
@@ -88,50 +183,34 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* MODAL DE INSCRIPCIÓN */}
+      {/* MODAL */}
       {programaSeleccionado && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white border-4 border-green-600 rounded-[3rem] p-8 md:p-12 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="bg-white border-4 border-green-600 rounded-[3rem] p-8 md:p-12 max-w-lg w-full shadow-2xl">
             {!inscritoExitoso ? (
               <>
-                <h3 className="text-3xl font-black text-black uppercase italic mb-4 leading-none text-center">Formulario de <span className="text-green-600">Inscripción</span></h3>
-                <p className="text-black font-bold text-center mb-8 uppercase text-xs tracking-widest">Estás a un paso de: <br/><span className="text-green-600 text-lg italic">{programaSeleccionado}</span></p>
-                
-                <div className="space-y-4 mb-8">
-                  <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
-                    <p className="text-[10px] font-black text-green-600 uppercase mb-1">Nota importante:</p>
-                    <p className="text-xs font-bold text-black">Al inscribirte, el SENA revisará tu perfil académico y se contactará contigo vía correo electrónico.</p>
-                  </div>
-                </div>
-
+                <h3 className="text-3xl font-black text-black uppercase italic mb-4 text-center leading-none">Inscripción</h3>
+                <p className="text-black font-bold text-center mb-8 uppercase text-[10px] tracking-widest">
+                  Vas a inscribirte a: <br/> <span className="text-green-600 text-lg">{programaSeleccionado}</span>
+                </p>
                 <div className="flex gap-4">
-                  {/* BOTÓN CANCELAR CON TEXTO NEGRO */}
-                  <button 
-                    onClick={() => setProgramaSeleccionado(null)} 
-                    className="flex-1 py-4 border-2 border-black rounded-2xl font-black uppercase text-xs text-black hover:bg-black hover:text-white transition-all"
-                  >
-                    Cancelar
-                  </button>
-                  <button 
-                    onClick={manejarInscripcion} 
-                    className="flex-1 py-4 bg-green-600 border-2 border-green-600 rounded-2xl font-black uppercase text-xs text-white shadow-lg shadow-green-200 hover:bg-green-700 transition-all"
-                  >
-                    Confirmar
-                  </button>
+                  <button onClick={() => setProgramaSeleccionado(null)} className="flex-1 py-4 border-2 border-black rounded-2xl font-black uppercase text-xs text-black hover:bg-black hover:text-white transition-all">Regresar</button>
+                  <button onClick={manejarInscripcion} className="flex-1 py-4 bg-green-600 border-2 border-green-600 rounded-2xl font-black uppercase text-xs text-white shadow-lg hover:bg-green-700 transition-all">Confirmar</button>
                 </div>
               </>
             ) : (
               <div className="text-center py-10">
-                <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center text-white text-4xl mx-auto mb-6">✓</div>
-                <h4 className="text-3xl font-black text-black uppercase mb-2 leading-none italic">¡Inscripción Exitosa!</h4>
-                <p className="font-bold text-black uppercase text-xs tracking-widest">Pronto recibirás noticias en tu correo.</p>
+                <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4">✓</div>
+                <h4 className="text-3xl font-black text-black uppercase italic">¡Inscripción Exitosa!</h4>
               </div>
             )}
           </div>
         </div>
       )}
 
-      <footer className="w-full py-20 text-center border-t border-green-50 mt-20"><p className="text-[11px] font-black text-black opacity-30 uppercase tracking-[0.5em]">ADSO • 2026</p></footer>
+      <footer className="w-full py-20 text-center border-t border-green-50 mt-20">
+        <p className="text-[11px] font-black text-black opacity-30 uppercase tracking-[0.5em]">ADSO • 2026</p>
+      </footer>
     </div>
   );
 }
