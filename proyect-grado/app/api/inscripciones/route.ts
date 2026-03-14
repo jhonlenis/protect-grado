@@ -1,10 +1,8 @@
+// cspell:disable
 import { NextResponse } from 'next/server';
 import mysql from 'mysql2/promise';
 import { RowDataPacket } from 'mysql2';
 
-/* cSpell:disable */
-
-// 1. CONFIGURACIÓN DE CONEXIÓN
 const dbConfig = {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -12,27 +10,56 @@ const dbConfig = {
   database: process.env.DB_NAME,
 };
 
-// 2. INTERFACES
-interface InscripcionRow extends RowDataPacket {
-  id: number;
-}
-
 interface MySqlError {
   message: string;
-  code?: string;
 }
 
-// 3. FUNCIÓN POST: Crear una nueva inscripción
+// GET: Obtener solo las inscripciones DEL USUARIO QUE INICIÓ SESIÓN
+export async function GET(request: Request) {
+  let connection;
+  try {
+    // 1. Extraemos el usuario_id de la URL (ej: /api/inscripciones?usuario_id=5)
+    const { searchParams } = new URL(request.url);
+    const usuarioId = searchParams.get('usuario_id');
+
+    // Si no mandan el ID, no sabemos qué mostrar
+    if (!usuarioId) {
+      return NextResponse.json({ error: "No se proporcionó ID de usuario" }, { status: 400 });
+    }
+
+    connection = await mysql.createConnection(dbConfig);
+    
+    // 2. FILTRADO CRÍTICO: Agregamos el WHERE id_usuario = ?
+    const [rows] = await connection.execute(
+      'SELECT * FROM inscripciones WHERE id_usuario = ? ORDER BY fecha_inscripcion DESC',
+      [usuarioId]
+    );
+    
+    await connection.end();
+    return NextResponse.json(rows);
+  } catch (error: unknown) {
+    if (connection) await connection.end();
+    const dbError = error as MySqlError;
+    return NextResponse.json({ error: dbError.message }, { status: 500 });
+  }
+}
+
+// POST: Crear inscripción vinculada al usuario real
 export async function POST(request: Request) {
   let connection;
   try {
     const { programa, usuario_id } = await request.json();
+    
+    if (!usuario_id) {
+      return NextResponse.json({ error: "Sesión no válida" }, { status: 401 });
+    }
+
     connection = await mysql.createConnection(dbConfig);
 
-    // Validación: ¿Ya existe este usuario en este programa?
-    const [rows] = await connection.execute<InscripcionRow[]>(
+    // Validación: ¿Este usuario específico ya tiene este programa?
+    const [rows] = await connection.execute<RowDataPacket[]>(
       'SELECT id FROM inscripciones WHERE id_usuario = ? AND programa = ?',
-      [usuario_id || 1, programa]
+      [usuario_id, programa]
     );
 
     if (rows.length > 0) {
@@ -40,38 +67,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Ya estás registrado en este programa" }, { status: 400 });
     }
 
-    // Inserción en la tabla 'inscripciones'
+    // Inserción con el ID real
     await connection.execute(
       'INSERT INTO inscripciones (id_usuario, programa, estado) VALUES (?, ?, ?)',
-      [usuario_id || 1, programa, 'Inscrito']
+      [usuario_id, programa, 'Inscrito']
     );
 
     await connection.end();
-    return NextResponse.json({ message: "Inscripción exitosa en la base de datos" });
+    return NextResponse.json({ message: "Inscripción exitosa" });
 
   } catch (error: unknown) {
     if (connection) await connection.end();
     const dbError = error as MySqlError;
-    console.error("DETALLE DEL ERROR POST:", dbError.message);
-    return NextResponse.json({ error: dbError.message }, { status: 500 });
-  }
-}
-
-// 4. FUNCIÓN GET: Obtener las inscripciones realizadas
-export async function GET() {
-  let connection;
-  try {
-    connection = await mysql.createConnection(dbConfig);
-    
-    // Traemos los datos de la tabla 'inscripciones'
-    const [rows] = await connection.execute('SELECT * FROM inscripciones ORDER BY fecha_inscripcion DESC');
-    
-    await connection.end();
-    return NextResponse.json(rows);
-  } catch (error: unknown) {
-    if (connection) await connection.end();
-    const dbError = error as MySqlError;
-    console.error("DETALLE DEL ERROR GET:", dbError.message);
     return NextResponse.json({ error: dbError.message }, { status: 500 });
   }
 }

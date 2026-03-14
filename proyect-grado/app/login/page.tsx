@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Importante para movernos de página
+import { useRouter } from 'next/navigation';
 import { CustomInput } from '@/components/CustomInput';
 import { DocumentSelect } from '@/components/DocumentSelect';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -28,7 +28,6 @@ export default function LoginPage() {
     setCargando(true);
 
     try {
-      // Llamamos a la API que creamos en app/api/login/route.ts
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -38,10 +37,19 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // ¡Éxito! Guardamos el nombre en el navegador (opcional por ahora) y redirigimos
-        router.push('/dashboard');
+        // 1. GUARDAMOS LOS DATOS EN EL NAVEGADOR
+        // Guardamos el objeto 'user' que contiene id, nombre y rol
+        localStorage.setItem('usuario', JSON.stringify(data.user));
+
+        // 2. REDIRECCIÓN INTELIGENTE SEGÚN EL ROL
+        // Nota: 'Administrador' debe coincidir exactamente con tu base de datos
+        if (data.user.rol === 'Administrador') {
+          router.push('/admin'); // Te manda a la pantalla profesional negra
+        } else {
+          router.push('/dashboard'); // Te manda a la pantalla de aprendiz
+        }
+        
       } else {
-        // Mostramos el error que viene de la API (ej: "Contraseña incorrecta")
         setError(data.error || 'Error al iniciar sesión');
       }
     } catch (err) {
@@ -57,7 +65,7 @@ export default function LoginPage() {
 
       <div className="bg-white shadow-2xl rounded-3xl p-8 max-w-md w-full border border-green-100 relative z-10">
         <h2 className="text-3xl font-extrabold text-black mb-2 text-center">Iniciar Sesión</h2>
-        <p className="text-black/70 mb-8 font-medium text-center">Valida tus datos de Aprendiz</p>
+        <p className="text-black/70 mb-8 font-medium text-center">Acceso al Sistema SENA</p>
 
         {error && (
           <div className="bg-red-100 border-l-4 border-red-600 text-red-700 p-3 rounded mb-4 text-sm font-bold animate-pulse">
