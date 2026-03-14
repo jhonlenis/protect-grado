@@ -1,7 +1,15 @@
-export const DocumentSelect = ({ required = true }: { required?: boolean }) => (
+interface DocumentProps {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  required?: boolean;
+}
+
+export const DocumentSelect = ({ value, onChange, required = true }: DocumentProps) => (
   <div className="w-full">
     <label className="block text-sm font-bold text-black mb-1">Tipo de Documento</label>
     <select 
+      value={value} // Agregado
+      onChange={onChange} // Agregado
       required={required}
       className="w-full px-4 py-2 rounded-xl border border-gray-300 bg-white text-black outline-none focus:ring-2 focus:ring-green-500"
     >
