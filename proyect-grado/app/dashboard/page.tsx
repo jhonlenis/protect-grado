@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import ChatBot from '@/components/ChatBot'; // <--- IMPORTAMOS EL CHATBOT
 
 interface Inscripcion {
   id: number;
@@ -19,10 +20,9 @@ export default function DashboardPage() {
   const [misInscripciones, setMisInscripciones] = useState<Inscripcion[]>([]);
   
   const [nombreUsuario, setNombreUsuario] = useState('Aprendiz');
-  const [accesoEspecial, setAccesoEspecial] = useState(false); // Para Admin y Coordinador
+  const [accesoEspecial, setAccesoEspecial] = useState(false); 
   const [userId, setUserId] = useState<number | null>(null);
 
-  // 1. CARGA DE INSCRIPCIONES (Filtradas por usuario para evitar el Error 400)
   const refrescarInscripciones = useCallback(async (id: number) => {
     try {
       const res = await fetch(`/api/inscripciones?usuario_id=${id}`);
@@ -35,7 +35,6 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // 2. INICIALIZACIÓN DE SESIÓN
   useEffect(() => {
     let montado = true;
     const inicializarSesion = async () => {
@@ -45,7 +44,6 @@ export default function DashboardPage() {
         setNombreUsuario(user.nombre);
         setUserId(user.id);
         
-        // El botón de control sale para Admin o Coordinador
         if (user.rol === 'Administrador' || user.rol === 'Coordinador') {
           setAccesoEspecial(true);
         }
@@ -57,7 +55,6 @@ export default function DashboardPage() {
     return () => { montado = false; };
   }, [refrescarInscripciones]);
 
-  // 3. PROCESO DE INSCRIPCIÓN
   const manejarInscripcion = async () => {
     if (!programaSeleccionado || !userId) return;
     try {
@@ -103,18 +100,22 @@ export default function DashboardPage() {
     <div className="light relative min-h-screen w-full overflow-x-hidden bg-white font-sans text-black">
       <div className="fixed inset-0 -z-10 w-full h-full" style={{ background: 'linear-gradient(to bottom, #f0fdf4, #ffffff)' }} />
 
-      {/* BOTÓN FLOTANTE DINÁMICO */}
+      {/* COMPONENTE CHATBOT (Aparecerá abajo a la derecha) */}
+      <ChatBot />
+
+      {/* BOTÓN PANEL ADMIN (Movido un poco a la izquierda para no tapar el chat) */}
       {accesoEspecial && (
-        <div className="fixed bottom-10 right-10 z-[100] animate-bounce">
+        <div className="fixed bottom-10 right-28 z-40 animate-bounce">
           <Link 
             href="/admin" 
-            className="bg-black text-white px-8 py-5 rounded-[2rem] font-black uppercase text-[10px] shadow-2xl hover:bg-green-600 transition-all flex items-center gap-3 border-2 border-green-500/30"
+            className="bg-black text-white px-6 py-4 rounded-full font-black uppercase text-[10px] shadow-2xl hover:bg-green-600 transition-all flex items-center gap-3 border-2 border-green-500/30"
           >
-            <span className="text-xl">🛠️</span> Panel de Control
+            🛠️ Admin
           </Link>
         </div>
       )}
 
+      {/* NAVBAR */}
       <nav className="w-full bg-white/95 border-b border-green-100 px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-4">
           <Image src="/Sena Logo.png" alt="Sena Logo" width={45} height={45} />
@@ -146,7 +147,7 @@ export default function DashboardPage() {
 
       <div className="max-w-7xl mx-auto p-6 md:p-12 space-y-16">
         
-        {/* TABLA DE INSCRIPCIONES PERSONALES */}
+        {/* MIS INSCRIPCIONES */}
         {misInscripciones.length > 0 && (
           <section className="animate-in fade-in slide-in-from-top-4 duration-700">
             <h2 className="text-4xl font-black text-black tracking-tighter uppercase italic mb-8">Mis <span className="text-green-600">Programas</span></h2>
@@ -175,9 +176,9 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* SELECTOR DE SECTORES */}
+        {/* FILTROS Y CATÁLOGO (Igual que antes) */}
         <div className="text-center">
-           <div className="flex overflow-x-auto gap-2 pb-4 justify-start lg:justify-center no-scrollbar">
+            <div className="flex overflow-x-auto gap-2 pb-4 justify-start lg:justify-center no-scrollbar">
             {nombresSectores.map((n) => (
               <button 
                 key={n} 
@@ -190,7 +191,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* CATÁLOGO DINÁMICO */}
         {categorias.map((cat) => {
           const coincidencias = cat.cursos.filter(c => c.toLowerCase().includes(busqueda.toLowerCase()));
           const mostrar = (sectorActivo === "Todos" || sectorActivo === cat.nombre) && coincidencias.length > 0;
@@ -224,7 +224,7 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* MODAL DE INSCRIPCIÓN */}
+      {/* MODAL (Igual que antes) */}
       {programaSeleccionado && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
           <div className="bg-white border-4 border-green-600 rounded-[3.5rem] p-10 max-w-lg w-full shadow-2xl scale-in-center">
