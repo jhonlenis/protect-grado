@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import ChatBot from '@/components/ChatBot'; // <--- IMPORTAMOS EL CHATBOT
+import ChatBot from '@/components/ChatBot';
 
 interface Inscripcion {
   id: number;
@@ -85,13 +85,87 @@ export default function DashboardPage() {
   };
 
   const categorias = [
-    { id: "01", nombre: "Tecnología", label: "Tecnología y Digital", cursos: ["Análisis y Desarrollo de Software", "Ciberseguridad", "Gestión de Redes de Datos", "Desarrollo de Videojuegos", "Python", "Java", "Cloud Computing"] },
-    { id: "02", nombre: "Administrativo", label: "Adm. y Financiero", cursos: ["Gestión Administrativa", "Talento Humano", "Gestión Logística", "Contabilidad", "Negociación Internacional"] },
-    { id: "03", nombre: "Industrial", label: "Industrial y Construcción", cursos: ["Electricidad Industrial", "Soldadura", "Motores Diesel", "Construcción", "Automatización"] },
-    { id: "04", nombre: "Salud", label: "Salud y Servicios Sociales", cursos: ["Enfermería", "Servicios Farmacéuticos", "Salud Oral", "SST", "Primera Infancia"] },
-    { id: "05", nombre: "Agro / Ambiental", label: "Agropecuario y Ambiental", cursos: ["Manejo Ambiental", "Producción Agropecuaria", "Agricultura Urbana", "Control Ambiental"] },
-    { id: "06", nombre: "Gastronomía", label: "Gastronomía y Turismo", cursos: ["Cocina", "Panificación", "Barismo", "Guianza Turística", "Eventos"] },
-    { id: "07", nombre: "Idiomas", label: "Idiomas y Educación", cursos: ["English Does Work Level 1", "English Does Work Level 2", "Pedagogía Humana", "Estrategias de Aprendizaje"] }
+    { 
+      id: "01", 
+      nombre: "Tecnología", 
+      label: "Tecnología y Digital", 
+      cursos: [
+        "Programación de Aplicaciones para Dispositivos Móviles", "Gestión de Redes de Datos", 
+        "Implementación de Infraestructura de TI", "Ciberseguridad", "Desarrollo de Videojuegos", 
+        "Animación Digital", "Diseño e Integración de Multimedia", "Programación de Software", 
+        "Mantenimiento de Equipos de Cómputo", "Desarrollo con PHP", "Manejo de Python", 
+        "Desarrollo Web con HTML5 y CSS3", "Bases de Datos en MySQL", "Introducción a Java"
+      ] 
+    },
+    { 
+      id: "02", 
+      nombre: "Administrativo", 
+      label: "Administrativo y Financiero", 
+      cursos: [
+        "Gestión Administrativa", "Contabilización de Operaciones Comerciales", "Gestión del Talento Humano", 
+        "Asistencia Administrativa", "Gestión Logística", "Servicios y Operaciones Microfinancieras", 
+        "Gestión Empresarial", "Nómina y Prestaciones Sociales", "Comercio Exterior", 
+        "Secretariado Ejecutivo", "Gestión de Propiedad Horizontal", "Administración de Recursos Humanos", 
+        "Contabilidad en las Organizaciones", "Finanzas Personales", "Legislación Laboral en Colombia", 
+        "Fundamentación Tributaria", "Auditoría Interna de Calidad"
+      ] 
+    },
+    { 
+      id: "03", 
+      nombre: "Industrial", 
+      label: "Industrial y Construcción", 
+      cursos: [
+        "Electricidad Industrial", "Soldadura de Productos Metálicos", "Mantenimiento de Motores Diesel", 
+        "Mantenimiento de Motores a Gasolina", "Construcción de Edificaciones", "Instalaciones Eléctricas Residenciales", 
+        "Topografía", "Carpintería", "Dibujo Técnico", "Refrigeración y Aire Acondicionado", 
+        "Mecánica de Maquinaria Industrial", "Automatización Industrial", "Confección Industrial de Ropa", 
+        "Patronaje Industrial", "Procesos de Joyería", "Electrónica de Consumo", "Operación de Montacargas"
+      ] 
+    },
+    { 
+      id: "04", 
+      nombre: "Salud", 
+      label: "Salud y Servicios Sociales", 
+      cursos: [
+        "Enfermería", "Servicios Farmacéuticos", "Salud Oral", "Atención Integral a la Primera Infancia", 
+        "Apoyo Administrativo en Salud", "Seguridad y Salud en el Trabajo (SST)", "Emergencias Médicas", 
+        "Estética Integral", "Cosmetología y Cosmiatría", "Bioseguridad aplicada a la Estética", 
+        "Primeros Auxilios", "Humanización de los Servicios de Salud", "Promoción de Estilos de Vida Saludables"
+      ] 
+    },
+    { 
+      id: "05", 
+      nombre: "Agro / Ambiental", 
+      label: "Agropecuario y Ambiental", 
+      cursos: [
+        "Producción Agropecuaria Ecológica", "Gestión de Empresas Agropecuarias", "Manejo Ambiental", 
+        "Cultivos Agrícolas", "Producción de Especies Menores", "Riego y Drenaje", "Manejo de Residuos Sólidos", 
+        "Conservación de Recursos Naturales", "Agricultura Urbana", "Cuidado y Manejo de Mascotas", 
+        "Floricultura", "Ganadería Bovina"
+      ] 
+    },
+    { 
+      id: "06", 
+      nombre: "Gastronomía", 
+      label: "Gastronomía y Turismo", 
+      cursos: [
+        "Cocina", "Panificación", "Repostería y Pastelería", "Guianza Turística", "Gestión de Destinos Turísticos", 
+        "Barismo (Preparación de Cafés)", "Servicio de Mesa y Bar", "Higiene y Manipulación de Alimentos", 
+        "Etiqueta y Protocolo", "Coctelería Moderna", "Organización de Eventos"
+      ] 
+    },
+    { 
+      id: "07", 
+      nombre: "Idiomas", 
+      label: "Idiomas y Educación", 
+      cursos: [
+        "English Does Work Level 1", "English Does Work Level 2", "English Does Work Level 3", 
+        "English Does Work Level 4", "English Does Work Level 5", "English Does Work Level 6", 
+        "English Does Work Level 7", "English Does Work Level 8", "English Does Work Level 9", 
+        "English Does Work Level 10", "English Does Work Level 11", "English Does Work Level 12", 
+        "English Does Work Level 13", "Pedagogía Humana", "Formación de Formadores"
+      ] 
+    }
   ];
 
   const nombresSectores = ["Todos", ...categorias.map(c => c.nombre)];
@@ -100,10 +174,9 @@ export default function DashboardPage() {
     <div className="light relative min-h-screen w-full overflow-x-hidden bg-white font-sans text-black">
       <div className="fixed inset-0 -z-10 w-full h-full" style={{ background: 'linear-gradient(to bottom, #f0fdf4, #ffffff)' }} />
 
-      {/* COMPONENTE CHATBOT (Aparecerá abajo a la derecha) */}
-      <ChatBot />
+      {/* CHATBOT DINÁMICO: Pasamos el nombre del usuario logueado */}
+      <ChatBot nombreUsuario={nombreUsuario} />
 
-      {/* BOTÓN PANEL ADMIN (Movido un poco a la izquierda para no tapar el chat) */}
       {accesoEspecial && (
         <div className="fixed bottom-10 right-28 z-40 animate-bounce">
           <Link 
@@ -176,9 +249,9 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* FILTROS Y CATÁLOGO (Igual que antes) */}
+        {/* SELECTOR DE SECTORES */}
         <div className="text-center">
-            <div className="flex overflow-x-auto gap-2 pb-4 justify-start lg:justify-center no-scrollbar">
+          <div className="flex overflow-x-auto gap-2 pb-4 justify-start lg:justify-center no-scrollbar">
             {nombresSectores.map((n) => (
               <button 
                 key={n} 
@@ -191,6 +264,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* LISTADO DE CURSOS */}
         {categorias.map((cat) => {
           const coincidencias = cat.cursos.filter(c => c.toLowerCase().includes(busqueda.toLowerCase()));
           const mostrar = (sectorActivo === "Todos" || sectorActivo === cat.nombre) && coincidencias.length > 0;
@@ -224,7 +298,7 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* MODAL (Igual que antes) */}
+      {/* MODAL DE CONFIRMACIÓN */}
       {programaSeleccionado && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
           <div className="bg-white border-4 border-green-600 rounded-[3.5rem] p-10 max-w-lg w-full shadow-2xl scale-in-center">
